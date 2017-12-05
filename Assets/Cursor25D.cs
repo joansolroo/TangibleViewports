@@ -5,11 +5,17 @@ using UnityEngine;
 public class Cursor25D : MonoBehaviour {
 
     Camera theCamera;
-    public GameObject cursor;
+    public GameObject cursorSar;
+    public GameObject cursorScreen;
     Vector3 cursorPosition;
+    Vector3 cursorPositionPrevious;
     RaycastHit hit;
     bool touchingSomething = false;
     public GameObject screen;
+
+    [SerializeField]
+    float brushSize = 0.1f;
+
     // Use this for initialization
     void Start () {
         theCamera = Camera.main;
@@ -23,7 +29,44 @@ public class Cursor25D : MonoBehaviour {
         if (touchingSomething)
         {
             cursorPosition = new Vector3(hit.point.x, hit.point.y, Mathf.Min(0,hit.point.z));
-            cursor.transform.position = cursorPosition;
+            if (hit.transform.gameObject != screen.gameObject)
+            {
+                cursorSar.transform.position = cursorPosition;
+                cursorSar.SetActive(true);
+            }
+            else
+            {
+                cursorSar.SetActive(true);
+            }
+
+            cursorScreen.transform.position = new Vector3(cursorPosition.x, cursorPosition.y, screen.transform.position.z);
+        }
+        if(touchingSomething && Input.GetMouseButton(0))
+        {
+            if (Vector3.Distance(cursorPosition, cursorPositionPrevious) > brushSize/2)
+            {
+                if (hit.transform.gameObject != screen.gameObject)
+                {
+                    GameObject paint = Instantiate<GameObject>(cursorSar);
+                    paint.transform.parent = hit.transform;
+                    paint.transform.position = cursorPosition;
+                    cursorPositionPrevious = cursorPosition;
+
+                    paint.transform.localScale = new Vector3(brushSize / paint.transform.lossyScale.x,
+                        brushSize / paint.transform.lossyScale.y,
+                        brushSize / paint.transform.lossyScale.z);
+                }
+                else{
+                    GameObject paint = Instantiate<GameObject>(cursorScreen);
+                    paint.transform.parent = hit.transform;
+                    paint.transform.position = cursorPosition;
+                    cursorPositionPrevious = cursorPosition;
+
+                    paint.transform.localScale = new Vector3(brushSize / paint.transform.lossyScale.x,
+                        brushSize / paint.transform.lossyScale.y,
+                        brushSize / paint.transform.lossyScale.z);
+                }
+            }
         }
     }
     private void OnDrawGizmos()
